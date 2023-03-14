@@ -7,7 +7,7 @@ from tqdm import tqdm
 from datetime import datetime
 from dataset_physio import get_dataloader
 
-class FINA_Dataset(Dataset):
+class Physio_Dataset(Dataset):
     
     def __init__(self, eval_length, use_index_list = None, missing_ratio = 0.1, seed = 0):
         self.eval_length = eval_length
@@ -80,7 +80,7 @@ class FINA_Dataset(Dataset):
 def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
 
     # only to obtain total length of dataset
-    dataset = FINA_Dataset(missing_ratio=missing_ratio, seed=seed)
+    dataset = Physio_Dataset(missing_ratio=missing_ratio, seed=seed)
     indlist = np.arange(len(dataset))
 
     np.random.seed(seed)
@@ -98,7 +98,7 @@ def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
     train_index = remain_index[:num_train]
     valid_index = remain_index[num_train:]
 
-    dataset = FINA_Dataset(
+    dataset = Physio_Dataset(
         use_index_list=train_index, missing_ratio=missing_ratio, seed=seed
     )
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=1)
