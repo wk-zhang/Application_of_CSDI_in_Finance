@@ -5,13 +5,11 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from datetime import datetime
-from dataset_physio import get_dataloader
 
 class Physio_Dataset(Dataset):
     
-    def __init__(self, eval_length, use_index_list = None, missing_ratio = 0.1, seed = 0):
+    def __init__(self, eval_length = 241, use_index_list = None, missing_ratio = 0.1, seed = 0):
         self.eval_length = eval_length
-        self.target_dim = target_dim
         np.random.seed(seed)
         
         df = pd.read_csv('/home/sida/wmx/CSDI-main/CSDI-main/data/885457.TI.df.csv',index_col = 'date')  # full data
@@ -27,17 +25,20 @@ class Physio_Dataset(Dataset):
         
         date = df.index.unique()
         for i in date:
-            temp = df.loc[[i]]
-            observed_values = np.array(temp)
+            observed_values = np.array(df.loc[[i]])
             observed_masks = ~np.isnan(observed_values) # take the negation of np.isnan
             gt_masks = ~np.isnan(np.array(df_gt.loc[[i]]))
+
+            observed_values = np.nan_to_num(observed_values) 
+            observed_masks = observed_masks.astype("float32") 
+            gt_masks = gt_masks.astype("float32") 
         
             self.observed_values.append(observed_values)
             self.observed_masks.append(observed_masks)
             self.gt_masks.append(gt_masks)
             
-        self.observed_values = np.array(observed_values)
-        self.observed_masks = np.array(observed_masks)
+        self.observed_values = np.array(self.observed_values)
+        self.observed_masks = np.array(self.observed_masks)
         self.gt_masks = np.array(self.gt_masks)
         
         
@@ -111,3 +112,13 @@ def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
     )
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=0)
     return train_loader, valid_loader, test_loader
+
+
+if __name__ == '__main__':
+    dataset = Physio_Dataset(missing_ratio = 0.1,seed = 1)
+    print(np.arange(len(dataset)))
+    train_loader = DataLoader(dataset,batch_size = 100,shuffle = 1)
+    print(next(iter(train_loader))['observed_data'].size())
+    print(next(iter(train_loader))['observed_mask'].size())
+    print(next(iter(train_loader))['gt_mask'].size())
+    print(next(iter(train_loader))['timepoints'].size())

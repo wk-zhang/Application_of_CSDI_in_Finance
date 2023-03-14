@@ -257,7 +257,7 @@ class CSDI_PM25(CSDI_base):
 
 
 class CSDI_Physio(CSDI_base):
-    def __init__(self, config, device, target_dim=35):
+    def __init__(self, config, device, target_dim=16):
         super(CSDI_Physio, self).__init__(target_dim, config, device)
 
     def process_data(self, batch):
