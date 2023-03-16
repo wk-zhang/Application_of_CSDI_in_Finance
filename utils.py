@@ -188,3 +188,61 @@ def evaluate(model, test_loader, nsample=100, scaler=1, mean_scaler=0, foldernam
                 print("RMSE:", np.sqrt(mse_total / evalpoints_total))
                 print("MAE:", mae_total / evalpoints_total)
                 print("CRPS:", CRPS)
+
+
+def predict(model, predict_loader, nsample=100, scaler=1, mean_scaler=0, foldername=""):
+
+    with torch.no_grad():
+        model.eval()
+
+        all_target = []
+        all_observed_point = []
+        all_observed_time = []
+        all_evalpoint = []
+        all_generated_samples = []
+        with tqdm(predict_loader, mininterval=5.0, maxinterval=50.0) as it:
+            for batch_no, predict_batch in enumerate(it, start=1):
+                output = model.evaluate(predict_batch, nsample)
+
+                samples, c_target, eval_points, observed_points, observed_time = output
+                samples = samples.permute(0, 1, 3, 2)  # (B,nsample,L,K)
+                c_target = c_target.permute(0, 2, 1)  # (B,L,K)
+                eval_points = eval_points.permute(0, 2, 1)
+                observed_points = observed_points.permute(0, 2, 1)
+
+                samples_median = samples.median(dim=1)
+                all_target.append(c_target)
+                all_evalpoint.append(eval_points)
+                all_observed_point.append(observed_points)
+                all_observed_time.append(observed_time)
+                all_generated_samples.append(samples)
+
+
+                it.set_postfix(
+                    ordered_dict={
+                        "batch_no": batch_no,
+                    },
+                    refresh=True,
+                )
+
+            with open(
+                foldername + "/generated_outputs_nsample" + str(nsample) + ".pk", "wb"
+            ) as f:
+                all_target = torch.cat(all_target, dim=0)
+                all_evalpoint = torch.cat(all_evalpoint, dim=0)
+                all_observed_point = torch.cat(all_observed_point, dim=0)
+                all_observed_time = torch.cat(all_observed_time, dim=0)
+                all_generated_samples = torch.cat(all_generated_samples, dim=0)
+
+                pickle.dump(
+                    [
+                        all_generated_samples,
+                        all_target,
+                        all_evalpoint,
+                        all_observed_point,
+                        all_observed_time,
+                        scaler,
+                        mean_scaler,
+                    ],
+                    f,
+                )

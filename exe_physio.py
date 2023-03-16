@@ -7,7 +7,8 @@ import os
 
 from main_model import CSDI_Physio
 from dataset_physio import get_dataloader
-from utils import train, evaluate
+from dataset_prediction import get_predict_dataloader
+from utils import train, evaluate, predict
 
 parser = argparse.ArgumentParser(description="CSDI")
 parser.add_argument("--config", type=str, default="base.yaml")
@@ -20,6 +21,7 @@ parser.add_argument(
 parser.add_argument("--unconditional", action="store_true")
 parser.add_argument("--modelfolder", type=str, default="")
 parser.add_argument("--nsample", type=int, default=100)
+parser.add_argument("--ispredict", type=int, default=0)
 
 args = parser.parse_args()
 print(args)
@@ -66,4 +68,8 @@ else:
     model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
 
 # evaluate model from utils
-evaluate(model, test_loader, nsample=args.nsample, scaler=1, foldername=foldername)
+if args.ispredict == 0:
+    evaluate(model, test_loader, nsample=args.nsample, scaler=1, foldername=foldername)
+else:
+    predict_loader = get_predict_dataloader()
+    predict(model, predict_loader, nsample=args.nsample, scaler=1, foldername=foldername)
