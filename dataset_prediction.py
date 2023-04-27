@@ -25,6 +25,7 @@ class Prediction_Dataset(Dataset):
             observed_masks = ~np.isnan(observed_values) # take the negation of np.isnan
             gt_masks = ~np.isnan(np.array(df_gt.loc[[i]]))
 
+            # full all NaN with 0 after setting up masks
             observed_values = np.nan_to_num(observed_values) 
             observed_masks = observed_masks.astype("float32") 
             gt_masks = gt_masks.astype("float32") 
@@ -46,6 +47,12 @@ class Prediction_Dataset(Dataset):
             c_data = tmp_values[:, k][tmp_masks[:, k]==1]
             mean[k] = c_data.mean()
             std[k] = c_data.std()
+
+        # store mean & std for visualization
+        ms_path = "/home/sida/zwk/Application_of_CSDI_in_Finance/data/predict_meanstd.pk"
+        with open(ms_path, "wb") as f:
+            pickle.dump([mean, std], f)
+
         self.observed_values = (
             (self.observed_values - mean)/std * self.observed_masks
         )

@@ -54,14 +54,13 @@ class CSDI_base(nn.Module):
         return pe
 
     def get_randmask(self, observed_mask):
-        rand_for_mask = torch.rand_like(observed_mask) * observed_mask
-        rand_for_mask = rand_for_mask.reshape(len(rand_for_mask), -1)
-        for i in range(len(observed_mask)):
-            sample_ratio = np.random.rand()  # missing ratio
-            num_observed = observed_mask[i].sum().item()
-            num_masked = round(num_observed * sample_ratio)
-            rand_for_mask[i][rand_for_mask[i].topk(num_masked).indices] = -1
-        cond_mask = (rand_for_mask > 0).reshape(observed_mask.shape).float()
+        # construct a (batch size) * 241 (60 to observe, 60 hidden, and 121 originally unknown) * 14 (features) mask for training
+        cond_observed = torch.full((60,14), 1).numpy()  # FIXME hard code
+        cond_missing = torch.full((60,14), 0).numpy()
+        original_missing = torch.full((121,14), 0).numpy()
+        cond_mask_s = np.concatenate((cond_observed, cond_missing, original_missing))
+        cond_mask = np.stack([cond_mask_s.T for _ in range(observed_mask.size()[0])])
+        cond_mask = torch.from_numpy(cond_mask).to(self.device)
         return cond_mask
 
     def get_hist_mask(self, observed_mask, for_pattern_mask=None):
