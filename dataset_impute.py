@@ -11,7 +11,7 @@ class Impute_Dataset(Dataset):
     def __init__(self, eval_length = 241, use_index_list = None):
         self.eval_length = eval_length
         
-        df_gt = pd.read_csv('input/missing.csv',index_col = 'date')  # missing data
+        df_gt = pd.read_csv('input/missing_processed.csv',index_col = 'date')  # missing data
         n_columns = len(df_gt.columns)
         
         self.observed_values = []
