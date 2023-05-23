@@ -6,29 +6,26 @@ import torch
 from tqdm import tqdm
 from datetime import datetime
 
-class Prediction_Dataset(Dataset):
+class Impute_Dataset(Dataset):
     
     def __init__(self, eval_length = 241, use_index_list = None):
         self.eval_length = eval_length
         
-        df = pd.read_csv('',index_col = 'date')  # full data
-        df_gt = pd.read_csv('',index_col = 'date')  # missing data
-        n_columns = len(df.columns)
+        df_gt = pd.read_csv('input/missing.csv',index_col = 'date')  # missing data
+        n_columns = len(df_gt.columns)
         
         self.observed_values = []
         self.observed_masks = []
         self.gt_masks = []
         
-        date = df.index.unique()
+        date = df_gt.index.unique()
         for i in date:
-            observed_values = np.array(df.loc[[i]])
-            observed_masks = ~np.isnan(observed_values) # take the negation of np.isnan
+            observed_values = np.array(df_gt.loc[[i]])
+            observed_values = np.nan_to_num(observed_values)  # for impute, we just need a full observed_value
+            observed_masks = ~np.isnan(observed_values)  # and an all-one observed_masks
             gt_masks = ~np.isnan(np.array(df_gt.loc[[i]]))
-
-            # full all NaN with 0 after setting up masks
-            observed_values = np.nan_to_num(observed_values) 
-            observed_masks = observed_masks.astype("float32") 
-            gt_masks = gt_masks.astype("float32") 
+            observed_masks = observed_masks.astype("float32")
+            gt_masks = gt_masks.astype("float32")
         
             self.observed_values.append(observed_values)
             self.observed_masks.append(observed_masks)
@@ -49,7 +46,7 @@ class Prediction_Dataset(Dataset):
             std[k] = c_data.std()
 
         # store mean & std for visualization
-        ms_path = "/home/sida/zwk/Application_of_CSDI_in_Finance/data/predict_meanstd.pk"
+        ms_path = "output/impute_meanstd.pk"
         with open(ms_path, "wb") as f:
             pickle.dump([mean, std], f)
 
@@ -76,9 +73,9 @@ class Prediction_Dataset(Dataset):
         return len(self.use_index_list)
 
 
-def get_predict_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
+def get_impute_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
 
-    dataset = Prediction_Dataset()
-    predict_loader = DataLoader(dataset)
+    dataset = Impute_Dataset()
+    impute_loader = DataLoader(dataset)
     
-    return predict_loader
+    return impute_loader

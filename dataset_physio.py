@@ -12,8 +12,8 @@ class Physio_Dataset(Dataset):
         self.eval_length = eval_length
         np.random.seed(seed)
         
-        df = pd.read_csv('/home/sida/zwk/Application_of_CSDI_in_Finance/data/688981.SH.csv',index_col = 'date')  # full data
-        df_gt = pd.read_csv('/home/sida/zwk/Application_of_CSDI_in_Finance/data/688981.SH.df_gt.csv',index_col = 'date')  # missing data
+        df = pd.read_csv('',index_col = 'date')  # full data
+        df_gt = pd.read_csv('',index_col = 'date')  # missing data
         n_columns = len(df.columns)
         
         self.observed_values = []
@@ -66,7 +66,7 @@ class Physio_Dataset(Dataset):
             std[k] = c_data.std()
 
         # store mean & std for visualization
-        ms_path = "/home/sida/zwk/Application_of_CSDI_in_Finance/data/meanstd.pk"
+        ms_path = ""
         with open(ms_path, "wb") as f:
             pickle.dump([mean, std], f)
 
@@ -108,23 +108,23 @@ def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
     np.random.shuffle(indlist)
 
     # 5-fold test
-    # start = (int)(nfold * 0.2 * len(dataset))
-    # end = (int)((nfold + 1) * 0.2 * len(dataset))
-    # test_index = indlist[start:end]
-    # remain_index = np.delete(indlist, np.arange(start, end))
+    start = (int)(nfold * 0.2 * len(dataset))
+    end = (int)((nfold + 1) * 0.2 * len(dataset))
+    test_index = indlist[start:end]
+    remain_index = np.delete(indlist, np.arange(start, end))
 
-    # np.random.seed(seed)
-    # np.random.shuffle(remain_index)
-    # num_train = (int)(len(dataset) * 0.7)
-    # train_index = remain_index[:num_train]
-    # valid_index = remain_index[num_train:]
+    np.random.seed(seed)
+    np.random.shuffle(remain_index)
+    num_train = (int)(len(dataset) * 0.7)
+    train_index = remain_index[:num_train]
+    valid_index = remain_index[num_train:]
 
-    train_start = 0
-    valid_start = int(0.8 * len(dataset))
-    test_start = int(0.9 * len(dataset))
-    train_index = indlist[train_start:valid_start]
-    valid_index = indlist[valid_start:test_start]
-    test_index = indlist[test_start:]
+    # train_start = 0
+    # valid_start = int(0.8 * len(dataset))
+    # test_start = int(0.9 * len(dataset))
+    # train_index = indlist[train_start:valid_start]
+    # valid_index = indlist[valid_start:test_start]
+    # test_index = indlist[test_start:]
 
     dataset = Physio_Dataset(
         use_index_list=train_index, missing_ratio=missing_ratio, seed=seed
