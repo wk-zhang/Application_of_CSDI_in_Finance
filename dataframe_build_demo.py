@@ -32,7 +32,7 @@ for q in qlist:
     quantiles_imp.append(get_quantile(samples, q, dim=1)*(1-all_given_np) + all_target_np * all_given_np)
 
 # Here we reconstruct the imputed dataframe
-df = pd.read_csv('./data/300750.SZ_2023.csv')  # input a sample csv format
+df = pd.read_csv('/home/sida/wmx/Application_of_CSDI_in_Finance/data/300750.SZ_2023.csv')  # input a sample csv format
 final_col = df.columns
 result = pd.DataFrame(columns=final_col)
 imp_col = ['open', 'high', 'low', 'close', 'avgPrice',
