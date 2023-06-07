@@ -27,4 +27,6 @@ impute_loader = get_impute_dataloader()
 # init model
 model = CSDI_Physio(config, args.device).to(args.device)
 model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
+
+# imputation
 predict(model, impute_loader, nsample=args.nsample, scaler=1, foldername="output/")

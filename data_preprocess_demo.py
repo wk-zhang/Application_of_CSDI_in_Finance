@@ -1,17 +1,20 @@
-import pickle
-from torch.utils.data import DataLoader, Dataset
-import pandas as pd
 import numpy as np
-import torch
-from tqdm import tqdm
-from datetime import datetime
+import pandas as pd
 
 
-#Pre-preprocess
+# read the original missing.csv
 df = pd.read_csv('./input/missing.csv')
+
+# we only use date in the imputation process
+# (consider data in the same date as a whole)
+# remember there should be 241 rows for each date
 df['date'] = df['date_time'].str[0:11]
-df.index = df['date']
+df.index = df['date']  # set date column as the index
+# if zero data means invalid data, convert it to NaN
 df.replace(0, np.nan, inplace=True)
-#df = df.drop(['date_time','code','Unnamed: 0','date','raise_num','fall_num'], axis=1)
-df = df.drop(['date_time','code','date','raise_num','fall_num'], axis=1)
+
+# be aware of some auto-generated columns, no-need-to-impute columns, and remember to drop original date_time column
+df = df.drop(['date_time', 'stock_code', 'Unnamed: 0'], axis=1)
+
+# save it in the /input folder as missing_processed.csv
 df.to_csv('./input/missing_processed.csv')
