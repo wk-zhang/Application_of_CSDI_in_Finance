@@ -7,7 +7,8 @@ import os
 
 from main_model import CSDI_Physio
 from dataset_physio import get_dataloader
-from utils import train, evaluate
+from dataset_impute import get_impute_dataloader
+from utils import train, evaluate, predict
 
 parser = argparse.ArgumentParser(description="CSDI")
 parser.add_argument("--config", type=str, default="base.yaml")
@@ -20,6 +21,7 @@ parser.add_argument(
 parser.add_argument("--unconditional", action="store_true")
 parser.add_argument("--modelfolder", type=str, default="")
 parser.add_argument("--nsample", type=int, default=100)
+parser.add_argument("--impute", type=int, default=0)
 
 args = parser.parse_args()
 print(args)
@@ -42,12 +44,13 @@ with open(foldername + "config.json", "w") as f:
     json.dump(config, f, indent=4)
 
 # init dataloaders from dataset_physio.py
-train_loader, valid_loader, test_loader = get_dataloader(
-    seed=args.seed,
-    nfold=args.nfold,
-    batch_size=config["train"]["batch_size"],
-    missing_ratio=config["model"]["test_missing_ratio"],
-)
+if args.impute == 0:
+    train_loader, valid_loader, test_loader = get_dataloader(
+        seed=args.seed,
+        nfold=args.nfold,
+        batch_size=config["train"]["batch_size"],
+        missing_ratio=config["model"]["test_missing_ratio"],
+    )
 
 # init model
 model = CSDI_Physio(config, args.device).to(args.device)
@@ -66,4 +69,8 @@ else:
     model.load_state_dict(torch.load("./save/" + args.modelfolder + "/model.pth"))
 
 # evaluate model from utils
-evaluate(model, test_loader, nsample=args.nsample, scaler=1, foldername=foldername)
+if args.impute == 0:
+    evaluate(model, test_loader, nsample=args.nsample, scaler=1, foldername=foldername)
+else:
+    impute_loader = get_impute_dataloader()
+    predict(model, impute_loader, nsample=args.nsample, scaler=1, foldername=foldername)

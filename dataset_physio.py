@@ -12,8 +12,8 @@ class Physio_Dataset(Dataset):
         self.eval_length = eval_length
         np.random.seed(seed)
         
-        df = pd.read_csv('/home/sida/wmx/CSDI-main/CSDI-main/data/885457.TI.df.csv',index_col = 'date')  # full data
-        df_gt = pd.read_csv('/home/sida/wmx/CSDI-main/CSDI-main/data/885457.TI.df_gt.csv',index_col = 'date')  # missing data
+        df = pd.read_csv('',index_col = 'date')  # full data
+        df_gt = pd.read_csv('',index_col = 'date')  # missing data
         n_columns = len(df.columns)
         
         self.observed_values = []
@@ -36,6 +36,20 @@ class Physio_Dataset(Dataset):
             self.observed_values.append(observed_values)
             self.observed_masks.append(observed_masks)
             self.gt_masks.append(gt_masks)
+        
+        # three-day ver. testing
+        # for i in range(0,597,3):  # FIXME hard code
+        #     observed_values = np.array(df.loc[date[i]:date[i+2]])
+        #     observed_masks = ~np.isnan(observed_values) # take the negation of np.isnan
+        #     gt_masks = ~np.isnan(np.array(df_gt.loc[date[i]:date[i+2]]))
+
+        #     observed_values = np.nan_to_num(observed_values) 
+        #     observed_masks = observed_masks.astype("float32") 
+        #     gt_masks = gt_masks.astype("float32") 
+        
+        #     self.observed_values.append(observed_values)
+        #     self.observed_masks.append(observed_masks)
+        #     self.gt_masks.append(gt_masks)
             
         self.observed_values = np.array(self.observed_values)
         self.observed_masks = np.array(self.observed_masks)
@@ -50,6 +64,12 @@ class Physio_Dataset(Dataset):
             c_data = tmp_values[:, k][tmp_masks[:, k]==1]
             mean[k] = c_data.mean()
             std[k] = c_data.std()
+
+        # store mean & std for visualization
+        ms_path = ""
+        with open(ms_path, "wb") as f:
+            pickle.dump([mean, std], f)
+
         self.observed_values = (
             (self.observed_values - mean)/std * self.observed_masks
         )
@@ -99,6 +119,13 @@ def get_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
     train_index = remain_index[:num_train]
     valid_index = remain_index[num_train:]
 
+    # train_start = 0
+    # valid_start = int(0.8 * len(dataset))
+    # test_start = int(0.9 * len(dataset))
+    # train_index = indlist[train_start:valid_start]
+    # valid_index = indlist[valid_start:test_start]
+    # test_index = indlist[test_start:]
+
     dataset = Physio_Dataset(
         use_index_list=train_index, missing_ratio=missing_ratio, seed=seed
     )
@@ -118,7 +145,7 @@ if __name__ == '__main__':
     dataset = Physio_Dataset(missing_ratio = 0.1,seed = 1)
     print(np.arange(len(dataset)))
     train_loader = DataLoader(dataset,batch_size = 100,shuffle = 1)
-    print(next(iter(train_loader))['observed_data'].size())
+    print(next(iter(train_loader))['observed_data'])
     print(next(iter(train_loader))['observed_mask'].size())
     print(next(iter(train_loader))['gt_mask'].size())
     print(next(iter(train_loader))['timepoints'].size())
