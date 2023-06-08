@@ -13,7 +13,7 @@ df.index = df['date']  # set date column as the index
 # if zero data means invalid data, convert it to NaN
 df.replace(0, np.nan, inplace=True)
 
-# be aware of some auto-generated columns, no-need-to-impute columns, and remember to drop original date_time column
+# be aware of some auto-generated columns, no-need-to-impute columns, duplicate columns and remember to drop original date_time column
 df = df.drop(['date_time', 'stock_code', 'Unnamed: 0'], axis=1)
 
 # save it in the /input folder as missing_processed.csv

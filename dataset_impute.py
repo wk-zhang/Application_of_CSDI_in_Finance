@@ -1,10 +1,8 @@
 import pickle
-from torch.utils.data import DataLoader, Dataset
 import pandas as pd
 import numpy as np
-import torch
-from tqdm import tqdm
-from datetime import datetime
+from torch.utils.data import DataLoader, Dataset
+
 
 class Impute_Dataset(Dataset):
     
@@ -73,7 +71,7 @@ class Impute_Dataset(Dataset):
         return len(self.use_index_list)
 
 
-def get_impute_dataloader(seed=1, nfold=None, batch_size=16, missing_ratio=0.1):
+def get_impute_dataloader():
 
     dataset = Impute_Dataset()
     impute_loader = DataLoader(dataset)
